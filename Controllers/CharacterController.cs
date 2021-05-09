@@ -47,5 +47,16 @@ namespace xxx.Controllers
             }
             return Ok(responce);
         }
+
+         [HttpDelete("{id}")]
+        public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> Delete(int id)
+        {
+           var responce = await _characterService.DeleteCharacter(id);
+            if(responce.Data == null){
+                
+                return NotFound(responce);
+            }
+            return Ok(responce);
+        }
     }
 }
