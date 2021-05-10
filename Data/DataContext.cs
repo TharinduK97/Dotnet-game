@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using xxx.Models;
 
-namespace xxx.DataContext
+namespace xxx.Data
 {
     public class DataContext: DbContext
     {
@@ -10,6 +10,6 @@ namespace xxx.DataContext
             
         }
 
-        public Dbset<Character> Characters { get; set; }
+        public DbSet<Character> Characters { get; set; }
     }
 }
