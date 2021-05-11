@@ -4,7 +4,7 @@ namespace xxx.Models
     {
         public int Id { get; set; }
 
-        public string Name { get; set; }="Tk";
+        public string Name { get; set; }="tk";
 
         public int HitPoints { get; set; }=100;
 
