@@ -81,7 +81,7 @@ namespace xxx.Services.CharacterService
 
             try
             {
-                Character character = characters.FirstOrDefault(c => c.Id == updateCharacter.Id);
+                Character character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updateCharacter.Id);
 
                 character.Name = updateCharacter.Name;
                 character.HitPoints = updateCharacter.HitPoints;
@@ -90,6 +90,7 @@ namespace xxx.Services.CharacterService
                 character.Intelligence = updateCharacter.Intelligence;
                 character.Class = updateCharacter.Class;
 
+                await _context.SaveChangesAsync();
                 serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
 
             }
