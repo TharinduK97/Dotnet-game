@@ -1,5 +1,10 @@
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using xxx.Models;
 
 namespace xxx.Data
@@ -7,8 +12,10 @@ namespace xxx.Data
     public class AuthRepository : IAuthRepository
     {
         private readonly DataContext _context;
-        public AuthRepository(DataContext context)
+        private readonly IConfiguration _configuration;
+        public AuthRepository(DataContext context, IConfiguration configuration)
         {
+            _configuration = configuration;
             _context = context;
 
         }
@@ -28,7 +35,7 @@ namespace xxx.Data
             }
             else
             {
-                response.Data = user.Id.ToString();
+                response.Data = CreateToken(user);
             }
 
             return response;
@@ -36,15 +43,15 @@ namespace xxx.Data
 
         public async Task<ServiceResponse<int>> Register(User user, string password)
         {
-             ServiceResponse<int> response = new ServiceResponse<int>();
+            ServiceResponse<int> response = new ServiceResponse<int>();
 
-             if (await UserExists(user.Username))
+            if (await UserExists(user.Username))
             {
                 response.Success = false;
                 response.Message = "User already exists.";
                 return response;
             }
-            
+
             CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
 
             user.PasswordHash = passwordHash;
@@ -62,7 +69,7 @@ namespace xxx.Data
             {
                 return true;
             }
-             return false;
+            return false;
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -74,7 +81,7 @@ namespace xxx.Data
             }
         }
 
-         private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
             {
@@ -88,6 +95,30 @@ namespace xxx.Data
                 }
                 return true;
             }
+        }
+        private string CreateToken(User user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username)
+            };
+
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var tokendDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = System.DateTime.Now.AddDays(1),
+                SigningCredentials = creds
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokendDescriptor);
+
+            return tokenHandler.WriteToken(token);
         }
     }
 
