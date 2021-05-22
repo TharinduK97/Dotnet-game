@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,6 +57,7 @@ namespace xxx
                         ValidateAudience = false
                     };
                 });
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
 
 
